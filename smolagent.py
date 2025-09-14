@@ -1,8 +1,8 @@
 # example tiny local agent by A.I. Christianson, founder of gobii.ai, builder of ra-aid.ai
 #
-# to run: uv run --with 'smolagents[mlx-lm]' --with ddgs smol.py 'how much free disk space do I have?'
+# to run: source .venv/bin/activate && python smolagent.py 'how much free disk space do I have?'
 
-from smolagents import CodeAgent, MLXModel, tool
+from smolagents import CodeAgent, LiteLLMModel, tool
 from subprocess import run
 import sys
 import os
@@ -115,7 +115,7 @@ if __name__ == "__main__":
         print("usage: python agent.py 'your prompt'"); sys.exit(1)
     common = "use cat/head to read files, use rg to search, use ls and standard shell commands to explore."
     agent = CodeAgent(
-        model=MLXModel(model_id="mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit-dwq-v2", max_tokens=8192, trust_remote_code=True),
+        model=LiteLLMModel(model_id="ollama/qwen2.5:3b", max_tokens=8192),
         tools=[write_file, sh],
         add_base_tools=True,
     )
