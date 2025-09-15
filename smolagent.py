@@ -1,6 +1,7 @@
 # example tiny local agent by A.I. Christianson, founder of gobii.ai, builder of ra-aid.ai
 #
 # to run: source .venv/bin/activate && python smolagent.py 'how much free disk space do I have?'
+# interactive mode: source .venv/bin/activate && python smolagent.py
 
 from smolagents import CodeAgent, LiteLLMModel, tool
 from subprocess import run
@@ -111,12 +112,46 @@ def sh(cmd: str) -> str:
         return f"error:{e}"
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("usage: python agent.py 'your prompt'"); sys.exit(1)
-    common = "use cat/head to read files, use rg to search, use ls and standard shell commands to explore."
+    common = "use cat/head to read files, use rg to search, use ls and standard shell commands to explore. IMPORTANT: Use the sh() tool for file system operations like listing directories - do NOT use Python os.listdir() or similar functions."
+    
     agent = CodeAgent(
         model=LiteLLMModel(model_id="ollama/qwen2.5:3b", max_tokens=8192),
         tools=[write_file, sh],
         add_base_tools=True,
+        additional_authorized_imports=["os", "shutil", "textblob"],
     )
-    print(agent.run(" ".join(sys.argv[1:]) + " " + common))
+    
+    # Check if running in one-shot mode (with command line args)
+    if len(sys.argv) > 1:
+        prompt = " ".join(sys.argv[1:]) + " " + common
+        print(agent.run(prompt))
+        sys.exit(0)
+    
+    # Interactive mode
+    print("🤖 Interactive smolagent started! Type 'quit' or 'exit' to stop.")
+    print("📁 I can help analyze files, run commands, and answer questions.")
+    print()
+    
+    while True:
+        try:
+            user_input = input("You: ").strip()
+            
+            if user_input.lower() in ['quit', 'exit', 'q']:
+                print("\n👋 Goodbye!")
+                break
+            
+            if not user_input:
+                print("Please enter a question or command.")
+                continue
+            
+            print("\n🤔 Agent:")
+            result = agent.run(user_input + " " + common)
+            print(result)
+            print()
+            
+        except KeyboardInterrupt:
+            print("\n\n👋 Goodbye!")
+            break
+        except Exception as e:
+            print(f"\n❌ Error: {e}")
+            print("Please try again or type 'quit' to exit.\n")
